@@ -58,7 +58,10 @@ defmodule Recruitment.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:earmark, "~> 1.4"}
+      {:earmark, "~> 1.4"},
+      {:oban, "~> 2.15"},
+  {:bumblebee, "~> 0.3"},
+  {:nx, "~> 0.5"}
     ]
   end
 

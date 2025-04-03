@@ -9,6 +9,7 @@ defmodule Recruitment.Applications do
   alias Recruitment.Applications.Application
   alias Recruitment.Jobs
   alias Recruitment.Applicants
+  alias Recruitment.Workers.CVSummarizationWorker
 
   @doc """
   Returns the list of applications.
@@ -136,5 +137,77 @@ defmodule Recruitment.Applications do
   """
   def get_job_by_location_and_slug(location, slug) do
     Jobs.get_job_by_location_and_slug(location, slug)
+  end
+  
+  @doc """
+  Requests a CV summarization for an application.
+  
+  This function schedules a background job using Oban to generate
+  a summary of the applicant's resume.
+  
+  ## Parameters
+    - application: The application to summarize
+    
+  ## Returns
+    - {:ok, %Oban.Job{}} - Job was successfully scheduled
+    - {:error, %Ecto.Changeset{}} - Failed to schedule job
+  """
+  def request_cv_summarization(%Application{} = application) do
+    %{application_id: application.id}
+    |> CVSummarizationWorker.new()
+    |> Oban.insert()
+  end
+  
+  @doc """
+  Gets the CV summary for an application.
+  
+  ## Parameters
+    - application_id: The ID of the application
+    
+  ## Returns
+    - {:ok, %{summary: summary, status: status}} - The summary and status
+    - {:error, :not_found} - Application not found
+  """
+  def get_cv_summary(application_id) do
+    case Repo.get(Application, application_id) do
+      nil -> 
+        {:error, :not_found}
+      application -> 
+        {:ok, %{
+          summary: application.cv_summary,
+          status: application.summary_status
+        }}
+    end
+  end
+  
+  @doc """
+  Triggers CV summarization for an application if it hasn't been processed yet.
+  
+  This function checks the current summary status and schedules a new
+  summarization job if needed.
+  
+  ## Parameters
+    - application_id: The ID of the application
+    
+  ## Returns
+    - {:ok, :scheduled} - Job was successfully scheduled
+    - {:ok, :already_processed} - Summary already exists
+    - {:error, reason} - Failed to schedule job
+  """
+  def ensure_cv_summary(application_id) do
+    case Repo.get(Application, application_id) do
+      nil -> 
+        {:error, :not_found}
+      application -> 
+        case application.summary_status do
+          status when status in ["completed", "processing"] ->
+            {:ok, :already_processed}
+          _ ->
+            case request_cv_summarization(application) do
+              {:ok, _job} -> {:ok, :scheduled}
+              error -> error
+            end
+        end
+    end
   end
 end

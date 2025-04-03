@@ -56,6 +56,15 @@ config :tailwind,
 # Configure domain settings for subdomain routing
 config :recruitment, :root_domain, "localhost"
 
+# Configure Oban for background jobs
+config :recruitment, Oban,
+  repo: Recruitment.Repo,
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7}, # prune jobs after 1 week
+    {Oban.Plugins.Cron, crontab: []}
+  ],
+  queues: [cv_processing: 2, default: 10]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
