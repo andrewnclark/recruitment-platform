@@ -14,6 +14,17 @@ defmodule RecruitmentWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Pipeline for the apply subdomain
+  pipeline :apply_subdomain do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {RecruitmentWeb.Layouts, :apply_root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  # Routes for the main domain
   scope "/", RecruitmentWeb do
     pipe_through :browser
 
@@ -22,6 +33,16 @@ defmodule RecruitmentWeb.Router do
     # Jobs routes
     get "/jobs", JobController, :index
     get "/jobs/:location/:slug", JobController, :show
+  end
+
+  # Routes for the "apply" subdomain
+  scope "/", RecruitmentWeb.Apply, host: "apply." do
+    pipe_through :apply_subdomain
+
+    get "/", ApplicationController, :index
+    get "/:location/:slug", ApplicationController, :new
+    post "/:location/:slug", ApplicationController, :create
+    get "/:location/:slug/success", ApplicationController, :success
   end
 
   # Other scopes may use custom stacks.

@@ -53,6 +53,9 @@ config :tailwind,
     cd: Path.expand("../assets", __DIR__)
   ]
 
+# Configure domain settings for subdomain routing
+config :recruitment, :root_domain, "localhost"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

@@ -38,6 +38,27 @@ defmodule Recruitment.Jobs do
   def get_job!(id), do: Repo.get!(Job, id)
 
   @doc """
+  Gets a job by location and slug.
+  Returns nil if no job is found.
+
+  ## Examples
+
+      iex> get_job_by_location_and_slug("london", "software-engineer")
+      %Job{}
+
+      iex> get_job_by_location_and_slug("invalid", "invalid")
+      nil
+
+  """
+  def get_job_by_location_and_slug(location, slug) when is_binary(location) and is_binary(slug) do
+    location = String.downcase(location)
+    
+    Job
+    |> where([j], fragment("lower(?)", j.location) == ^location and j.slug == ^slug)
+    |> Repo.one()
+  end
+
+  @doc """
   Creates a job.
 
   ## Examples
