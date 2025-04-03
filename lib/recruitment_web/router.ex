@@ -18,6 +18,10 @@ defmodule RecruitmentWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    
+    # Jobs routes
+    get "/jobs", JobController, :index
+    get "/jobs/:location/:slug", JobController, :show
   end
 
   # Other scopes may use custom stacks.
