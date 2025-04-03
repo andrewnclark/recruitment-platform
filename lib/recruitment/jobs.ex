@@ -38,12 +38,13 @@ defmodule Recruitment.Jobs do
   def get_job!(id), do: Repo.get!(Job, id)
 
   @doc """
-  Gets a job by location and slug.
+  Gets a job by its location and slug.
+
   Returns nil if no job is found.
 
   ## Examples
 
-      iex> get_job_by_location_and_slug("london", "software-engineer")
+      iex> get_job_by_location_and_slug("new-york", "software-engineer")
       %Job{}
 
       iex> get_job_by_location_and_slug("invalid", "invalid")
@@ -52,10 +53,69 @@ defmodule Recruitment.Jobs do
   """
   def get_job_by_location_and_slug(location, slug) when is_binary(location) and is_binary(slug) do
     location = String.downcase(location)
-    
     Job
     |> where([j], fragment("lower(?)", j.location) == ^location and j.slug == ^slug)
     |> Repo.one()
+  end
+
+  @doc """
+  Gets a list of published jobs.
+
+  ## Examples
+
+      iex> list_published_jobs()
+      [%Job{}, ...]
+
+  """
+  def list_published_jobs do
+    today = Date.utc_today()
+    
+    Job
+    |> where([j], j.published == true)
+    |> where([j], is_nil(j.expiry_date) or j.expiry_date >= ^today)
+    |> order_by([j], desc: j.inserted_at)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a list of published jobs by category.
+
+  ## Examples
+
+      iex> list_published_jobs_by_category("engineering")
+      [%Job{}, ...]
+
+  """
+  def list_published_jobs_by_category(category) when is_binary(category) do
+    today = Date.utc_today()
+    
+    Job
+    |> where([j], j.published == true)
+    |> where([j], is_nil(j.expiry_date) or j.expiry_date >= ^today)
+    |> where([j], j.category == ^category)
+    |> order_by([j], desc: j.inserted_at)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a list of published jobs by location.
+
+  ## Examples
+
+      iex> list_published_jobs_by_location("new-york")
+      [%Job{}, ...]
+
+  """
+  def list_published_jobs_by_location(location) when is_binary(location) do
+    today = Date.utc_today()
+    location = String.downcase(location)
+    
+    Job
+    |> where([j], j.published == true)
+    |> where([j], is_nil(j.expiry_date) or j.expiry_date >= ^today)
+    |> where([j], fragment("lower(?)", j.location) == ^location)
+    |> order_by([j], desc: j.inserted_at)
+    |> Repo.all()
   end
 
   @doc """
@@ -91,6 +151,25 @@ defmodule Recruitment.Jobs do
   def update_job(%Job{} = job, attrs) do
     job
     |> Job.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a job and regenerates its slug based on the current title.
+  Use this when you specifically want to update the slug.
+
+  ## Examples
+
+      iex> regenerate_job_slug(job, %{field: new_value})
+      {:ok, %Job{}}
+
+      iex> regenerate_job_slug(job, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def regenerate_job_slug(%Job{} = job, attrs \\ %{}) do
+    job
+    |> Job.regenerate_slug_changeset(attrs)
     |> Repo.update()
   end
 

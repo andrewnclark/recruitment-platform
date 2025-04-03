@@ -163,6 +163,82 @@ defmodule Recruitment.JobsTest do
       assert updated_job.slug == original_slug
     end
     
+    test "slug doesn't change when title is updated" do
+      # Create a job
+      {:ok, job} = Jobs.create_job(%{
+        title: "Frontend Developer",
+        description: "Original description",
+        location: "Remote",
+        job_type: "full_time",
+        category: "Engineering",
+        summary: "A frontend role"
+      })
+      
+      original_slug = job.slug
+      
+      # Update the job title
+      {:ok, updated_job} = Jobs.update_job(job, %{
+        title: "Senior Frontend Developer"
+      })
+      
+      # Slug should remain the same
+      assert updated_job.slug == original_slug
+      assert updated_job.title == "Senior Frontend Developer"
+    end
+    
+    test "slug can be regenerated when explicitly requested" do
+      # Create a job
+      {:ok, job} = Jobs.create_job(%{
+        title: "Backend Developer",
+        description: "Original description",
+        location: "Remote",
+        job_type: "full_time",
+        category: "Engineering",
+        summary: "A backend role"
+      })
+      
+      original_slug = job.slug
+      
+      # Update the job title but keep the original slug
+      {:ok, updated_job} = Jobs.update_job(job, %{
+        title: "Senior Backend Developer"
+      })
+      
+      # Slug should remain the same
+      assert updated_job.slug == original_slug
+      
+      # Now explicitly regenerate the slug
+      {:ok, regenerated_job} = Jobs.regenerate_job_slug(updated_job)
+      
+      # Slug should be updated to match the new title
+      assert regenerated_job.slug != original_slug
+      assert regenerated_job.slug == "senior-backend-developer"
+    end
+    
+    test "regenerate_job_slug/2 updates both the slug and other attributes" do
+      # Create a job
+      {:ok, job} = Jobs.create_job(%{
+        title: "Product Manager",
+        description: "Original description",
+        location: "Remote",
+        job_type: "full_time",
+        category: "Product",
+        summary: "A product role"
+      })
+      
+      # Update multiple attributes and regenerate slug
+      {:ok, updated_job} = Jobs.regenerate_job_slug(job, %{
+        title: "Senior Product Manager",
+        description: "Updated description",
+        location: "Hybrid"
+      })
+      
+      # Both slug and other attributes should be updated
+      assert updated_job.slug == "senior-product-manager"
+      assert updated_job.description == "Updated description"
+      assert updated_job.location == "Hybrid"
+    end
+    
     test "slug uniqueness is preserved when updating a job title" do
       # Create two jobs with different titles
       {:ok, job1} = Jobs.create_job(%{
