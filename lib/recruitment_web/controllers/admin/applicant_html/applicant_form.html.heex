@@ -1,0 +1,28 @@
+<.simple_form :let={f} for={@changeset} action={@action} class="space-y-6">
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <.input field={f[:first_name]} type="text" label="First Name" required />
+      <.input field={f[:last_name]} type="text" label="Last Name" required />
+    </div>
+    
+    <div>
+      <.input field={f[:email]} type="email" label="Email" required />
+      <.input field={f[:phone]} type="tel" label="Phone" />
+    </div>
+  </div>
+
+  <div>
+    <.input field={f[:notes]} type="textarea" label="Notes" rows={6} />
+    <p class="mt-1 text-sm text-gray-500">
+      Add any relevant notes about this applicant. Markdown formatting is supported.
+    </p>
+  </div>
+
+  <:actions>
+    <.button type="submit" class="w-full md:w-auto">Save</.button>
+  </:actions>
+</.simple_form>

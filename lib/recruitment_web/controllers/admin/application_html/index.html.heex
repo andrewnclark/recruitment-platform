@@ -1,0 +1,83 @@
+<.header>
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-gray-800">Applications</h1>
+  </div>
+</.header>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <%= if Enum.empty?(@applications) do %>
+    <div class="p-8 text-center">
+      <p class="text-gray-500">No applications have been submitted yet.</p>
+    </div>
+  <% else %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Applicant
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Job
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Date
+            </th>
+            <th scope="col" class="relative px-6 py-3">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="applications" class="bg-white divide-y divide-gray-200">
+          <%= for application <- @applications do %>
+            <tr id={"application-#{application.id}"}>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= application.first_name %> <%= application.last_name %>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      <%= application.email %>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">
+                  Job #<%= application.job_id %>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{
+                  case application.status do
+                    "submitted" -> "bg-blue-100 text-blue-800"
+                    "reviewed" -> "bg-yellow-100 text-yellow-800"
+                    "interviewed" -> "bg-purple-100 text-purple-800"
+                    "hired" -> "bg-green-100 text-green-800"
+                    "rejected" -> "bg-red-100 text-red-800"
+                    _ -> "bg-gray-100 text-gray-800"
+                  end
+                }"}>
+                  <%= String.capitalize(application.status) %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= Calendar.strftime(application.inserted_at, "%B %d, %Y") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex justify-end space-x-2">
+                  <.link navigate={~p"/applications/#{application.id}"} class="text-indigo-600 hover:text-indigo-900">View</.link>
+                  <.link href={~p"/applications/#{application.id}"} method="delete" data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">Delete</.link>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

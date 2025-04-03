@@ -1,0 +1,184 @@
+<.header>
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-semibold text-gray-800"><%= @applicant.first_name %> <%= @applicant.last_name %></h1>
+    <div class="flex space-x-3">
+      <.link
+        navigate={~p"/applicants/#{@applicant.id}/edit"}
+        class="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        </div>
+      </.link>
+      <.link
+        href={~p"/applicants/#{@applicant.id}"}
+        method="delete"
+        data-confirm="Are you sure you want to delete this applicant? This will NOT delete their applications."
+        class="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete
+        </div>
+      </.link>
+    </div>
+  </div>
+</.header>
+
+<div class="space-y-8 mt-6">
+  <!-- Applicant Info Card -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Contact Information</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="mb-4">
+            <p class="text-sm text-gray-500">Full Name</p>
+            <p class="text-base font-medium text-gray-900"><%= @applicant.first_name %> <%= @applicant.last_name %></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Email</p>
+            <p class="text-base text-gray-900"><%= @applicant.email %></p>
+          </div>
+        </div>
+        <div>
+          <div class="mb-4">
+            <p class="text-sm text-gray-500">Phone</p>
+            <p class="text-base text-gray-900"><%= @applicant.phone || "Not provided" %></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">In Database Since</p>
+            <p class="text-base text-gray-900"><%= Calendar.strftime(@applicant.inserted_at, "%B %d, %Y") %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resume Card -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Latest Resume</h2>
+    </div>
+    <div class="p-6">
+      <%= if @latest_resume do %>
+        <div class="mb-4">
+          <a href={@latest_resume} target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download Resume
+          </a>
+        </div>
+      <% else %>
+        <p class="text-gray-500 italic">No resume available for this applicant</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Notes Card -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Notes</h2>
+    </div>
+    <div class="p-6">
+      <%= if @applicant.notes do %>
+        <div class="prose max-w-none text-gray-700">
+          <%= Phoenix.HTML.raw(Earmark.as_html!(@applicant.notes)) %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 italic">No notes for this applicant</p>
+      <% end %>
+      <div class="mt-4">
+        <.link navigate={~p"/applicants/#{@applicant.id}/edit"} class="text-indigo-600 hover:text-indigo-900">
+          Add/Edit Notes
+        </.link>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applications Card -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Application History</h2>
+    </div>
+    <div class="p-6">
+      <%= if Enum.empty?(@applications) do %>
+        <p class="text-gray-500 italic">No applications found for this applicant</p>
+      <% else %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Job
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">View</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <%= for application <- @applications do %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= application.job.title %>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      <%= application.job.location %>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{
+                      case application.status do
+                        "submitted" -> "bg-blue-100 text-blue-800"
+                        "reviewed" -> "bg-yellow-100 text-yellow-800"
+                        "interviewed" -> "bg-purple-100 text-purple-800"
+                        "hired" -> "bg-green-100 text-green-800"
+                        "rejected" -> "bg-red-100 text-red-800"
+                        _ -> "bg-gray-100 text-gray-800"
+                      end
+                    }"}>
+                      <%= String.capitalize(application.status) %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= Calendar.strftime(application.inserted_at, "%B %d, %Y") %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <.link navigate={~p"/applications/#{application.id}"} class="text-indigo-600 hover:text-indigo-900">
+                      View
+                    </.link>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="mt-6">
+  <.link navigate={~p"/applicants"} class="text-indigo-600 hover:text-indigo-800">
+    <div class="flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to applicants
+    </div>
+  </.link>
+</div>

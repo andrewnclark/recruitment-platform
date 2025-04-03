@@ -11,8 +11,8 @@ defmodule Recruitment.Applications.Application do
     field :resume, :string
     field :status, :string, default: "submitted"
     
-    # Reference to the job
-    field :job_id, :id
+    belongs_to :job, Recruitment.Jobs.Job
+    belongs_to :applicant, Recruitment.Applicants.Applicant
 
     timestamps()
   end
@@ -20,9 +20,11 @@ defmodule Recruitment.Applications.Application do
   @doc false
   def changeset(application, attrs) do
     application
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :cover_letter, :resume, :job_id])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :cover_letter, :resume, :job_id, :status, :applicant_id])
     |> validate_required([:first_name, :last_name, :email, :job_id])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
+    |> foreign_key_constraint(:job_id)
+    |> foreign_key_constraint(:applicant_id)
   end
 end

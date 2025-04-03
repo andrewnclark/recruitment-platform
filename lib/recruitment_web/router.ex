@@ -23,6 +23,21 @@ defmodule RecruitmentWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
+  
+  # Pipeline for the admin subdomain
+  pipeline :admin do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {RecruitmentWeb.Layouts, :admin_root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+  
+  # Pipeline for admin authentication
+  pipeline :admin_auth do
+    plug RecruitmentWeb.AdminAuthPlug
+  end
 
   # Routes for the main domain
   scope "/", RecruitmentWeb do
@@ -43,6 +58,25 @@ defmodule RecruitmentWeb.Router do
     get "/:location/:slug", ApplicationController, :new
     post "/:location/:slug", ApplicationController, :create
     get "/:location/:slug/success", ApplicationController, :success
+  end
+  
+  # Admin routes
+  scope "/", RecruitmentWeb.Admin, host: "admin.:domain" do
+    pipe_through [:admin]
+
+    get "/login", SessionController, :new
+    post "/login", SessionController, :create
+  end
+
+  scope "/", RecruitmentWeb.Admin, host: "admin.:domain" do
+    pipe_through [:admin, :admin_auth]
+
+    get "/", DashboardController, :index
+    delete "/logout", SessionController, :delete
+    
+    resources "/jobs", JobController
+    resources "/applications", ApplicationController, except: [:new, :create, :edit]
+    resources "/applicants", ApplicantController, except: [:new, :create]
   end
 
   # Other scopes may use custom stacks.

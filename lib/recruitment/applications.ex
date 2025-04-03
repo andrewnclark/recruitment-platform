@@ -8,6 +8,7 @@ defmodule Recruitment.Applications do
 
   alias Recruitment.Applications.Application
   alias Recruitment.Jobs
+  alias Recruitment.Applicants
 
   @doc """
   Returns the list of applications.
@@ -20,6 +21,7 @@ defmodule Recruitment.Applications do
   """
   def list_applications do
     Repo.all(Application)
+    |> Repo.preload([:job, :applicant])
   end
 
   @doc """
@@ -36,7 +38,10 @@ defmodule Recruitment.Applications do
       ** (Ecto.NoResultsError)
 
   """
-  def get_application!(id), do: Repo.get!(Application, id)
+  def get_application!(id) do
+    Repo.get!(Application, id)
+    |> Repo.preload([:job, :applicant])
+  end
 
   @doc """
   Creates a application.
@@ -51,9 +56,22 @@ defmodule Recruitment.Applications do
 
   """
   def create_application(attrs \\ %{}) do
-    %Application{}
-    |> Application.changeset(attrs)
-    |> Repo.insert()
+    # First, get or create an applicant based on the email
+    applicant_attrs = %{
+      email: attrs[:email] || attrs["email"],
+      first_name: attrs[:first_name] || attrs["first_name"],
+      last_name: attrs[:last_name] || attrs["last_name"],
+      phone: attrs[:phone] || attrs["phone"]
+    }
+
+    with {:ok, applicant} <- Applicants.get_or_create_applicant_by_email(applicant_attrs) do
+      # Then create the application with the applicant_id
+      attrs_with_applicant = Map.put(attrs, :applicant_id, applicant.id)
+
+      %Application{}
+      |> Application.changeset(attrs_with_applicant)
+      |> Repo.insert()
+    end
   end
 
   @doc """

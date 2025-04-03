@@ -1,0 +1,97 @@
+<.header>
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-gray-800">Jobs</h1>
+    <.link
+      navigate={~p"/jobs/new"}
+      class="py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Add Job
+      </div>
+    </.link>
+  </div>
+</.header>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <%= if Enum.empty?(@jobs) do %>
+    <div class="p-8 text-center">
+      <p class="text-gray-500">No jobs found. Create your first job listing!</p>
+      <div class="mt-4">
+        <.link
+          navigate={~p"/jobs/new"}
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Create Job
+        </.link>
+      </div>
+    </div>
+  <% else %>
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Title
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Location
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Type
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Status
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Expiry
+          </th>
+          <th scope="col" class="relative px-6 py-3">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="jobs" class="bg-white divide-y divide-gray-200">
+        <%= for job <- @jobs do %>
+          <tr id={"job-#{job.id}"}>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900"><%= job.title %></div>
+              <div class="text-xs text-gray-500">
+                Category: <%= job.category %>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900"><%= job.location %></div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                <%= String.replace(job.job_type, "_", " ") |> String.capitalize() %>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{if job.published, do: "bg-green-100 text-green-800", else: "bg-gray-100 text-gray-800"}"}>
+                <%= if job.published, do: "Published", else: "Draft" %>
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= if job.expiry_date do %>
+                <%= Calendar.strftime(job.expiry_date, "%B %d, %Y") %>
+              <% else %>
+                No expiry
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end space-x-2">
+                <.link navigate={~p"/jobs/#{job.id}"} class="text-indigo-600 hover:text-indigo-900">View</.link>
+                <.link navigate={~p"/jobs/#{job.id}/edit"} class="text-blue-600 hover:text-blue-900">Edit</.link>
+                <.link href={~p"/jobs/#{job.id}"} method="delete" data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">Delete</.link>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
