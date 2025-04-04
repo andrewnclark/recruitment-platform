@@ -51,6 +51,6 @@ defmodule RecruitmentWeb.Endpoint do
   plug Plug.Session, @session_options
   
   # Add host configuration for subdomain routing
-  plug RecruitmentWeb.SubdomainPlug
+  plug RecruitmentWeb.Plugs.HostSubdomainPlug
   plug RecruitmentWeb.Router
 end

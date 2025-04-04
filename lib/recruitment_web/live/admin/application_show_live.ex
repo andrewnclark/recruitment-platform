@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Admin.ApplicationShowLive do
-  use RecruitmentWeb, :live_view
+  use RecruitmentWeb, {:admin_live_view, []}
   
   alias Recruitment.Applications
   alias Recruitment.Jobs

@@ -4,7 +4,8 @@ defmodule RecruitmentWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_live_flash
+    plug :fetch_flash
+    plug RecruitmentWeb.Plugs.HostSubdomainPlug
     plug :put_root_layout, html: {RecruitmentWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
@@ -24,7 +25,7 @@ defmodule RecruitmentWeb.Router do
     plug :put_secure_browser_headers
   end
   
-  # Pipeline for the admin subdomain
+  # Pipeline for admin pages
   pipeline :admin do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -39,6 +40,44 @@ defmodule RecruitmentWeb.Router do
     plug RecruitmentWeb.AdminAuthPlug
   end
 
+  # Routes for the "admin" subdomain
+  scope "/", RecruitmentWeb.Admin, host: "admin.localhost" do
+    pipe_through [:browser, :admin]
+    get "/login", SessionController, :new
+    post "/login", SessionController, :create
+    # Additional admin routes can be added here
+  end
+
+  # Routes for the "apply" subdomain
+  scope "/", RecruitmentWeb.Apply, host: "apply.localhost" do
+    pipe_through :apply_subdomain
+
+    get "/", ApplicationController, :index
+    get "/:location/:slug", ApplicationController, :new
+    post "/:location/:slug", ApplicationController, :create
+    get "/:location/:slug/success", ApplicationController, :success
+  end
+  
+  # Admin routes with subdomain - PROTECTED ROUTES
+  scope "/", RecruitmentWeb.Admin, host: "admin.localhost" do
+    pipe_through [:admin, :admin_auth]
+    
+    # Dashboard as root
+    get "/", DashboardController, :index
+    
+    # Logout route
+    delete "/logout", SessionController, :delete
+    
+    # Resource routes
+    resources "/jobs", JobController
+    resources "/applications", ApplicationController, except: [:new, :create, :edit]
+    
+    # LiveView routes
+    live "/applications/:id/live", ApplicationShowLive, :show
+    
+    resources "/applicants", ApplicantController, except: [:new, :create]
+  end
+
   # Routes for the main domain
   scope "/", RecruitmentWeb do
     pipe_through :browser
@@ -48,39 +87,9 @@ defmodule RecruitmentWeb.Router do
     # Jobs routes
     get "/jobs", JobController, :index
     get "/jobs/:location/:slug", JobController, :show
-  end
-
-  # Routes for the "apply" subdomain
-  scope "/", RecruitmentWeb.Apply, host: "apply." do
-    pipe_through :apply_subdomain
-
-    get "/", ApplicationController, :index
-    get "/:location/:slug", ApplicationController, :new
-    post "/:location/:slug", ApplicationController, :create
-    get "/:location/:slug/success", ApplicationController, :success
-  end
-  
-  # Admin routes
-  scope "/", RecruitmentWeb.Admin, host: "admin.:domain" do
-    pipe_through [:admin]
-
-    get "/login", SessionController, :new
-    post "/login", SessionController, :create
-  end
-
-  scope "/", RecruitmentWeb.Admin, host: "admin.:domain" do
-    pipe_through [:admin, :admin_auth]
-
-    get "/", DashboardController, :index
-    delete "/logout", SessionController, :delete
     
-    resources "/jobs", JobController
-    resources "/applications", ApplicationController, except: [:new, :create, :edit]
-    
-    # LiveView route for application details with CV summary
-    # live "/applications/:id/details", ApplicationShowLive, :show
-    
-    resources "/applicants", ApplicantController, except: [:new, :create]
+    # Fallback route
+    get "/*path", PageController, :not_found
   end
 
   # Other scopes may use custom stacks.

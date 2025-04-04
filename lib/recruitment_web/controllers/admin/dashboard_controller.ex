@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Admin.DashboardController do
-  use RecruitmentWeb, :controller
+  use RecruitmentWeb, {:admin_controller, []}
 
   alias Recruitment.Jobs
   alias Recruitment.Applications
@@ -12,7 +12,8 @@ defmodule RecruitmentWeb.Admin.DashboardController do
     # Get recent applications (top 5)
     recent_applications = 
       Applications.list_applications()
-      |> Enum.sort_by(fn app -> app.inserted_at end, {:desc, DateTime})
+      |> Enum.filter(fn app -> app.inserted_at != nil end)
+      |> Enum.sort_by(fn app -> app.inserted_at end, {:desc, NaiveDateTime})
       |> Enum.take(5)
     
     # Get application statistics by status

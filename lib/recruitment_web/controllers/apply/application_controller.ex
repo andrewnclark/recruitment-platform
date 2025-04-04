@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Apply.ApplicationController do
-  use RecruitmentWeb, :controller
+  use RecruitmentWeb, {:apply_controller, []}
 
   alias Recruitment.Applications
   alias Recruitment.Applications.Application
@@ -21,7 +21,9 @@ defmodule RecruitmentWeb.Apply.ApplicationController do
       
       job ->
         changeset = Applications.change_application(%Application{job_id: job.id})
-        render(conn, :new, changeset: changeset, job: job)
+        # Generate the action URL string for the form
+        action = ~p"/#{location}/#{slug}"
+        render(conn, :new, changeset: changeset, job: job, action: action)
     end
   end
 

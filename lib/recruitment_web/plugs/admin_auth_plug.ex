@@ -25,7 +25,7 @@ defmodule RecruitmentWeb.AdminAuthPlug do
       {:error, conn} ->
         conn
         |> put_flash(:error, "Admin authentication required")
-        |> redirect(to: "/admin/login")
+        |> redirect(to: "/login")
         |> halt()
     end
   end
@@ -59,6 +59,7 @@ defmodule RecruitmentWeb.AdminAuthPlug do
       :ok ->
         conn
         |> put_session(:admin_authenticated, true)
+        |> assign(:admin_authenticated, true)
         |> put_flash(:info, "Welcome to the admin panel!")
       :error ->
         conn

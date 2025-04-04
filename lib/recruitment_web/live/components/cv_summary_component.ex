@@ -63,15 +63,10 @@ defmodule RecruitmentWeb.Live.Components.CvSummaryComponent do
   end
   
   @impl true
-  def mount(socket) do
-    {:ok, socket}
-  end
-  
-  @impl true
   def update(%{application: application} = assigns, socket) do
-    if connected?(socket) do
-      PubSub.subscribe(Recruitment.PubSub, "application:#{application.id}:summary")
-    end
+    # Always subscribe to PubSub updates for this application
+    # The socket.connected? check is handled internally by Phoenix
+    PubSub.subscribe(Recruitment.PubSub, "application:#{application.id}:summary")
     
     {:ok, 
      socket

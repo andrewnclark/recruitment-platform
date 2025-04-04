@@ -17,9 +17,13 @@ defmodule RecruitmentWeb.Apply.ApplicationHTML do
   """
   def format_description(nil), do: ""
   def format_description(text) do
-    text
+    # First escape the text, then convert newlines to <br> tags
+    escaped = Phoenix.HTML.html_escape(text)
+    
+    # Return the content as a string instead of a safe tuple
+    escaped
+    |> Phoenix.HTML.safe_to_string()
     |> String.split("\n")
-    |> Enum.map(&Phoenix.HTML.raw(Phoenix.HTML.html_escape(&1)))
     |> Enum.join("<br>")
   end
 end

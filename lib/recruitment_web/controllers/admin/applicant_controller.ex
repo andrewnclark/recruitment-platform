@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Admin.ApplicantController do
-  use RecruitmentWeb, :controller
+  use RecruitmentWeb, {:admin_controller, []}
 
   alias Recruitment.Applicants
   alias Recruitment.Applicants.Applicant

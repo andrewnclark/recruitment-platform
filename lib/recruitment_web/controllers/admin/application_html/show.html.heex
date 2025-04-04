@@ -159,11 +159,12 @@
       <h2 class="text-lg font-medium text-gray-900">CV Summary</h2>
     </div>
     <div class="p-6">
-      <.live_component
-        module={RecruitmentWeb.Live.Components.CvSummaryComponent}
-        id={"cv-summary-#{@application.id}"}
-        application={@application}
-      />
+      <.link navigate={~p"/applications/#{@application.id}/live"} class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        View Interactive CV Summary
+      </.link>
+      <p class="mt-2 text-sm text-gray-500">
+        The CV summary is available in the interactive view.
+      </p>
     </div>
   </div>
 </div>

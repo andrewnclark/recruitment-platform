@@ -19,7 +19,7 @@ defmodule Recruitment.Applicants do
 
   """
   def list_applicants do
-    Repo.all(Applicant)
+    Repo.all(from a in Applicant, preload: [:applications])
   end
 
   @doc """

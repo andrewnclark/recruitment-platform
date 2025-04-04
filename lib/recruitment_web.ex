@@ -40,11 +40,37 @@ defmodule RecruitmentWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: RecruitmentWeb.Layouts]
+        layouts: [html: {RecruitmentWeb.Layouts, :app}]
 
       use Gettext, backend: RecruitmentWeb.Gettext
 
+      unquote(verified_routes())
+    end
+  end
+
+  def admin_controller(_opts) do
+    quote do
+      use Phoenix.Controller,
+        namespace: RecruitmentWeb.Admin,
+        formats: [:html, :json],
+        layouts: [html: {RecruitmentWeb.Layouts, :admin}]
+
       import Plug.Conn
+      import RecruitmentWeb.Gettext
+
+      unquote(verified_routes())
+    end
+  end
+
+  def apply_controller(_opts) do
+    quote do
+      use Phoenix.Controller,
+        namespace: RecruitmentWeb.Apply,
+        formats: [:html, :json],
+        layouts: [html: {RecruitmentWeb.Layouts, :apply}]
+
+      import Plug.Conn
+      import RecruitmentWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -54,6 +80,15 @@ defmodule RecruitmentWeb do
     quote do
       use Phoenix.LiveView,
         layout: {RecruitmentWeb.Layouts, :app}
+
+      unquote(html_helpers())
+    end
+  end
+
+  def admin_live_view(_opts) do
+    quote do
+      use Phoenix.LiveView,
+        layout: {RecruitmentWeb.Layouts, :admin}
 
       unquote(html_helpers())
     end
@@ -87,8 +122,9 @@ defmodule RecruitmentWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
+      # Core UI components and translation
       import RecruitmentWeb.CoreComponents
+      import RecruitmentWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -108,9 +144,14 @@ defmodule RecruitmentWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/live_view/etc.
+  When used, dispatch to the appropriate controller/view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+
+  # Special case for admin_controller and apply_controller
+  defmacro __using__({which, opts}) when is_atom(which) do
+    apply(__MODULE__, which, [opts])
   end
 end

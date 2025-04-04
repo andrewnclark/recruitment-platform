@@ -2,13 +2,14 @@ import Config
 
 # Configure your database
 config :recruitment, Recruitment.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "recruitment",
+  username: "neondb_owner",
+  password: "npg_aVhkR8Wj3fgp",
+  hostname: "ep-white-tree-abybvyv1-pooler.eu-west-2.aws.neon.tech",
+  database: "neondb",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  ssl: [cacerts: :public_key.cacerts_get()]
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -24,6 +25,7 @@ config :recruitment, RecruitmentWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   secret_key_base: "LCiQDVknqbsMkPXAN2nfaHu/RpF3SoOjxWbTIETaHuxU0gnB1oJdQ15xfXPrWl6x",
+  url: [host: "localhost"],
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:recruitment, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:recruitment, ~w(--watch)]}

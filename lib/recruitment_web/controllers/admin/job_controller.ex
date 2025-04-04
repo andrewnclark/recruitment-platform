@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Admin.JobController do
-  use RecruitmentWeb, :controller
+  use RecruitmentWeb, {:admin_controller, []}
 
   alias Recruitment.Jobs
   alias Recruitment.Jobs.Job

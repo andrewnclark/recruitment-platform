@@ -1,5 +1,5 @@
 defmodule RecruitmentWeb.Admin.SessionController do
-  use RecruitmentWeb, :controller
+  use RecruitmentWeb, {:admin_controller, []}
   
   alias RecruitmentWeb.AdminAuthPlug
 
@@ -21,6 +21,6 @@ defmodule RecruitmentWeb.Admin.SessionController do
   def delete(conn, _params) do
     conn
     |> AdminAuthPlug.logout()
-    |> redirect(to: ~p"/login")
+    |> redirect(to: "/login")
   end
 end

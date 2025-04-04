@@ -4,14 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Recruitment" suffix=" · Phoenix Framework">
+    <.live_title default="Prime Tech Talent" suffix=" · Tech Recruitment Platform">
       {assigns[:page_title]}
     </.live_title>
+    <meta name="description" content="Find your next tech career opportunity with Prime Tech Talent - connecting exceptional tech professionals with innovative companies." />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-white">
+  <body class="bg-[#F5F5F5] font-['Inter'] text-gray-900 antialiased">
+    <.flash_group flash={@flash} />
     {@inner_content}
   </body>
 </html>
