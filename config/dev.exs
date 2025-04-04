@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :recruitment, Recruitment.Repo,
   username: "neondb_owner",
-  password: "npg_aVhkR8Wj3fgp",
+  password: "npg_NqstSPd7f8cM",
   hostname: "ep-white-tree-abybvyv1-pooler.eu-west-2.aws.neon.tech",
   database: "neondb",
   stacktrace: true,

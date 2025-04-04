@@ -1,54 +1,102 @@
-<div class="bg-[#F5F5F5] min-h-screen py-12">
+<section class="bg-gradient-to-b from-white to-[#F5F7FA] py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold text-[#1B1E38] mb-2">Current Job Openings</h1>
-      <p class="text-xl text-gray-600">Explore our available positions and find your next tech career opportunity</p>
+      <div class="inline-block bg-[#4A7BFA]/10 text-[#4A7BFA] px-4 py-1 rounded-full text-sm font-medium mb-3">
+        Explore Opportunities
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-[#1B1E38] mb-3">Current Job Openings</h1>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explore our available positions and find your next tech career opportunity</p>
+    </div>
+
+    <!-- Filters section -->
+    <div class="mb-10 bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex items-center">
+        <span class="text-[#1B1E38] font-medium mr-3">All Jobs</span>
+        <span class="bg-[#4A7BFA]/10 text-[#4A7BFA] px-2.5 py-0.5 rounded-full text-sm font-medium">
+          <%= length(@jobs) %> positions
+        </span>
+      </div>
+      
+      <div class="flex flex-wrap gap-3">
+        <a href="#" class="inline-flex items-center px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
+          All Locations
+        </a>
+        <a href="#" class="inline-flex items-center px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
+          All Categories
+        </a>
+        <a href="#" class="inline-flex items-center px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
+          All Types
+        </a>
+      </div>
     </div>
 
     <%= if Enum.empty?(@jobs) do %>
-      <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-        <p class="text-gray-600 text-lg">No job openings available at the moment. Please check back later.</p>
+      <div class="bg-white rounded-xl shadow-sm p-10 text-center border border-gray-100">
+        <div class="text-[#4A7BFA] mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+        </div>
+        <p class="text-gray-600 text-lg mb-2">No job openings available at the moment.</p>
+        <p class="text-gray-500">Please check back later or subscribe to our job alerts.</p>
       </div>
     <% else %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <%= for job <- @jobs do %>
-          <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <div class="border-b border-gray-200 bg-[#283E74] px-5 py-4">
-              <h2 class="text-lg font-semibold text-white truncate"><%= job.title %></h2>
-            </div>
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#A8E6EC] text-[#283E74]">
-                  <%= job.category %>
-                </span>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#4A7BFA] text-white">
+          <div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 flex flex-col h-full group overflow-hidden">
+            <div class="px-6 pt-6 pb-4">
+              <!-- Company logo if available -->
+              <div class="flex items-center mb-4">
+                <div class="bg-[#F5F7FA] rounded-md h-10 w-10 flex items-center justify-center text-[#4A7BFA]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <span class="inline-flex ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#A8E6EC]/20 text-[#00A0B7]">
                   <%= String.replace(job.job_type, "_", " ") |> String.capitalize() %>
                 </span>
               </div>
               
-              <div class="flex items-center text-gray-600 mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-[#4A7BFA]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <%= job.location %>
+              <h3 class="text-xl font-semibold text-[#1B1E38] mb-2 group-hover:text-[#4A7BFA] transition-colors"><%= job.title %></h3>
+              
+              <!-- Location and salary range in a row -->
+              <div class="flex flex-wrap items-center text-sm text-gray-600 mb-4 gap-4">
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <%= job.location %>
+                </div>
+                
+                <%= if job.min_salary && job.max_salary do %>
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  $<%= job.min_salary %>-<%= job.max_salary %>k
+                </div>
+                <% end %>
               </div>
               
-              <p class="text-gray-700 mb-4 line-clamp-3"><%= job.summary %></p>
+              <!-- Category tag -->
+              <div class="mb-4">
+                <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium bg-[#4A7BFA]/10 text-[#4A7BFA]">
+                  <%= job.category %>
+                </span>
+              </div>
               
-              <div class="flex justify-between items-center">
-                <%= if job.min_salary && job.max_salary do %>
-                  <div class="text-sm text-gray-600">
-                    $<%= Number.Delimit.number_to_delimited(job.min_salary) %> - $<%= Number.Delimit.number_to_delimited(job.max_salary) %>
-                  </div>
-                <% else %>
-                  <div></div>
-                <% end %>
-                
-                <.link navigate={~p"/jobs/#{job.location}/#{job.slug}"} class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-[#FF8A33] hover:bg-[#e67d2e]">
-                  View Details
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <!-- Job summary with clamp -->
+              <p class="text-gray-700 mb-6 line-clamp-3 text-sm"><%= job.summary %></p>
+            </div>
+            
+            <!-- Apply button section -->
+            <div class="px-6 pb-4 mt-auto">              
+              <div class="pt-4 border-t border-gray-100">
+                <.link navigate={~p"/jobs/#{job.location}/#{job.slug}"} class="text-[#4A7BFA] font-medium flex items-center hover:underline text-sm">
+                  View details
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H6" />
                   </svg>
                 </.link>
               </div>
@@ -58,8 +106,8 @@
       </div>
     <% end %>
     
-    <div class="mt-12 text-center">
-      <a href={~p"/"} class="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#283E74] hover:bg-[#1d2e5a] shadow-sm">
+    <div class="mt-16 flex justify-center">
+      <a href={~p"/"} class="inline-flex items-center px-5 py-3 text-base font-medium rounded-md text-[#4A7BFA] bg-[#4A7BFA]/10 hover:bg-[#4A7BFA]/20 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
         </svg>
@@ -67,4 +115,4 @@
       </a>
     </div>
   </div>
-</div>
+</section>
