@@ -16,6 +16,7 @@ defmodule Recruitment.Workers.CVSummarizationWorker do
   alias Recruitment.Applications.Application
   alias Recruitment.AI.CVSummarizer
   alias Recruitment.Repo
+  alias Phoenix.PubSub
   
   require Logger
 
@@ -30,34 +31,57 @@ defmodule Recruitment.Workers.CVSummarizationWorker do
     case extract_resume_text(application) do
       {:ok, resume_text} ->
         # Update the application with "processing" status
-        Applications.update_application(application, %{summary_status: "processing"})
+        {:ok, updated_app} = Applications.update_application(application, %{summary_status: "processing"})
+        
+        # Broadcast the status update
+        broadcast_update(updated_app)
         
         # Generate summary
         case CVSummarizer.summarize(resume_text) do
           {:ok, summary} ->
             # Update the application with the summary
-            Applications.update_application(application, %{
+            {:ok, updated_app} = Applications.update_application(application, %{
               cv_summary: summary,
               summary_status: "completed"
             })
+            
+            # Broadcast the completion with the summary
+            broadcast_update(updated_app)
             
             Logger.info("Successfully generated CV summary for application ##{application_id}")
             :ok
             
           {:error, reason} ->
             # Update application with error status
-            Applications.update_application(application, %{summary_status: "error"})
+            {:ok, updated_app} = Applications.update_application(application, %{summary_status: "error"})
+            
+            # Broadcast the error status
+            broadcast_update(updated_app)
             
             Logger.error("Failed to generate CV summary for application ##{application_id}: #{reason}")
             {:error, reason}
         end
         
       {:error, reason} ->
-        Applications.update_application(application, %{summary_status: "error"})
+        {:ok, updated_app} = Applications.update_application(application, %{summary_status: "error"})
+        
+        # Broadcast the error status
+        broadcast_update(updated_app)
         
         Logger.error("Failed to extract text from resume for application ##{application_id}: #{reason}")
         {:error, reason}
     end
+  end
+  
+  @doc """
+  Broadcasts application updates to all subscribed LiveViews.
+  """
+  def broadcast_update(%Application{} = application) do
+    PubSub.broadcast(
+      Recruitment.PubSub,
+      "application:#{application.id}",
+      {:cv_summary_updated, application}
+    )
   end
   
   @doc """

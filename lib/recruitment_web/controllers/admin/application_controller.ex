@@ -1,8 +1,10 @@
 defmodule RecruitmentWeb.Admin.ApplicationController do
   use RecruitmentWeb, :controller
+  import Phoenix.LiveView.Controller
 
   alias Recruitment.Applications
   alias Recruitment.Jobs
+  alias Phoenix.PubSub
 
   def index(conn, _params) do
     applications = Applications.list_applications()
@@ -12,6 +14,12 @@ defmodule RecruitmentWeb.Admin.ApplicationController do
   def show(conn, %{"id" => id}) do
     application = Applications.get_application!(id)
     job = Jobs.get_job!(application.job_id)
+    
+    # Subscribe to PubSub updates for this application
+    if connected?(conn) do
+      PubSub.subscribe(Recruitment.PubSub, "application:#{application.id}:summary")
+    end
+    
     render(conn, :show, application: application, job: job)
   end
 

@@ -76,6 +76,10 @@ defmodule RecruitmentWeb.Router do
     
     resources "/jobs", JobController
     resources "/applications", ApplicationController, except: [:new, :create, :edit]
+    
+    # LiveView route for application details with CV summary
+    # live "/applications/:id/details", ApplicationShowLive, :show
+    
     resources "/applicants", ApplicantController, except: [:new, :create]
   end
 
