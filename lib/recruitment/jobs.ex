@@ -5,8 +5,26 @@ defmodule Recruitment.Jobs do
 
   import Ecto.Query, warn: false
   alias Recruitment.Repo
-
   alias Recruitment.Jobs.Job
+
+  # Custom error types
+  defmodule Error do
+    defexception [:message, :code, :details]
+
+    @type t :: %__MODULE__{
+      message: String.t(),
+      code: atom(),
+      details: map() | nil
+    }
+
+    def exception(opts) do
+      message = Keyword.get(opts, :message, "An error occurred")
+      code = Keyword.get(opts, :code, :unknown_error)
+      details = Keyword.get(opts, :details, nil)
+
+      %__MODULE__{message: message, code: code, details: details}
+    end
+  end
 
   @doc """
   Returns the list of jobs.
@@ -24,7 +42,30 @@ defmodule Recruitment.Jobs do
   @doc """
   Gets a single job.
 
-  Raises `Ecto.NoResultsError` if the Job does not exist.
+  Returns {:ok, job} if found, {:error, reason} otherwise.
+
+  ## Examples
+
+      iex> get_job(123)
+      {:ok, %Job{}}
+
+      iex> get_job(456)
+      {:error, %Error{message: "Job not found", code: :not_found}}
+
+  """
+  def get_job(id) do
+    case Repo.get(Job, id) do
+      nil -> 
+        {:error, %Error{message: "Job not found", code: :not_found}}
+      job -> 
+        {:ok, job}
+    end
+  end
+
+  @doc """
+  Gets a single job and raises if not found.
+
+  Raises `Error` if the Job does not exist.
 
   ## Examples
 
@@ -32,49 +73,67 @@ defmodule Recruitment.Jobs do
       %Job{}
 
       iex> get_job!(456)
-      ** (Ecto.NoResultsError)
+      ** (Recruitment.Jobs.Error)
 
   """
-  def get_job!(id), do: Repo.get!(Job, id)
+  def get_job!(id) do
+    case get_job(id) do
+      {:ok, job} -> job
+      {:error, error} -> raise error
+    end
+  end
 
   @doc """
   Gets a job by its location and slug.
 
-  Returns nil if no job is found.
+  Returns {:ok, job} if found, {:error, reason} otherwise.
 
   ## Examples
 
       iex> get_job_by_location_and_slug("new-york", "software-engineer")
-      %Job{}
+      {:ok, %Job{}}
 
       iex> get_job_by_location_and_slug("invalid", "invalid")
-      nil
+      {:error, %Error{message: "Job not found", code: :not_found}}
 
   """
   def get_job_by_location_and_slug(location, slug) when is_binary(location) and is_binary(slug) do
     location = String.downcase(location)
-    Job
-    |> where([j], fragment("lower(?)", j.location) == ^location and j.slug == ^slug)
-    |> Repo.one()
+    
+    case Job
+         |> where([j], fragment("lower(?)", j.location) == ^location and j.slug == ^slug)
+         |> Repo.one() do
+      nil -> 
+        {:error, %Error{
+          message: "Job not found for location '#{location}' and slug '#{slug}'",
+          code: :not_found
+        }}
+      job -> 
+        {:ok, job}
+    end
   end
 
   @doc """
   Gets a list of published jobs.
 
+  Returns {:ok, jobs} if successful, {:error, reason} otherwise.
+
   ## Examples
 
       iex> list_published_jobs()
-      [%Job{}, ...]
+      {:ok, [%Job{}, ...]}
 
   """
   def list_published_jobs do
     today = Date.utc_today()
     
-    Job
-    |> where([j], j.published == true)
-    |> where([j], is_nil(j.expiry_date) or j.expiry_date >= ^today)
-    |> order_by([j], desc: j.inserted_at)
-    |> Repo.all()
+    jobs = Job
+           |> where([j], j.published == true)
+           |> where([j], is_nil(j.expiry_date) or j.expiry_date >= ^today)
+           |> order_by([j], desc: j.inserted_at)
+           |> Repo.all()
+    
+    {:ok, jobs}
   end
 
   @doc """
@@ -121,37 +180,43 @@ defmodule Recruitment.Jobs do
   @doc """
   Creates a job.
 
+  Returns {:ok, job} if successful, {:error, reason} otherwise.
+
   ## Examples
 
-      iex> create_job(%{field: value})
+      iex> create_job(%{title: "Developer"})
       {:ok, %Job{}}
 
-      iex> create_job(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      iex> create_job(%{title: nil})
+      {:error, %Error{message: "Invalid job data", code: :validation_error, details: %{title: ["can't be blank"]}}}
 
   """
   def create_job(attrs \\ %{}) do
     %Job{}
     |> Job.changeset(attrs)
     |> Repo.insert()
+    |> handle_result()
   end
 
   @doc """
   Updates a job.
 
+  Returns {:ok, job} if successful, {:error, reason} otherwise.
+
   ## Examples
 
-      iex> update_job(job, %{field: new_value})
+      iex> update_job(job, %{title: "New Title"})
       {:ok, %Job{}}
 
-      iex> update_job(job, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      iex> update_job(job, %{title: nil})
+      {:error, %Error{message: "Invalid job data", code: :validation_error, details: %{title: ["can't be blank"]}}}
 
   """
   def update_job(%Job{} = job, attrs) do
     job
     |> Job.changeset(attrs)
     |> Repo.update()
+    |> handle_result()
   end
 
   @doc """
@@ -176,17 +241,27 @@ defmodule Recruitment.Jobs do
   @doc """
   Deletes a job.
 
+  Returns {:ok, job} if successful, {:error, reason} otherwise.
+
   ## Examples
 
       iex> delete_job(job)
       {:ok, %Job{}}
 
       iex> delete_job(job)
-      {:error, %Ecto.Changeset{}}
+      {:error, %Error{message: "Could not delete job", code: :delete_error}}
 
   """
   def delete_job(%Job{} = job) do
-    Repo.delete(job)
+    case Repo.delete(job) do
+      {:ok, job} -> {:ok, job}
+      {:error, changeset} -> 
+        {:error, %Error{
+          message: "Could not delete job",
+          code: :delete_error,
+          details: format_changeset_errors(changeset)
+        }}
+    end
   end
 
   @doc """
@@ -200,5 +275,24 @@ defmodule Recruitment.Jobs do
   """
   def change_job(%Job{} = job, attrs \\ %{}) do
     Job.changeset(job, attrs)
+  end
+
+  # Helper function to handle database results
+  defp handle_result({:ok, job}), do: {:ok, job}
+  defp handle_result({:error, changeset}) do
+    {:error, %Error{
+      message: "Invalid job data",
+      code: :validation_error,
+      details: format_changeset_errors(changeset)
+    }}
+  end
+
+  # Helper function to format changeset errors into a more readable format
+  defp format_changeset_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
   end
 end

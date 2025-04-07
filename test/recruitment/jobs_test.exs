@@ -19,29 +19,29 @@ defmodule Recruitment.JobsTest do
       job = job_fixture()
       assert Jobs.get_job!(job.id) == job
     end
-    
+
     test "get_job_by_location_and_slug/2 returns the job with given location and slug" do
       job = job_fixture(%{location: "London", title: "Software Engineer"})
       assert Jobs.get_job_by_location_and_slug("london", job.slug) == job
     end
-    
+
     test "get_job_by_location_and_slug/2 is case insensitive for location" do
       job = job_fixture(%{location: "London", title: "Software Engineer"})
       assert Jobs.get_job_by_location_and_slug("LONDON", job.slug) == job
       assert Jobs.get_job_by_location_and_slug("london", job.slug) == job
       assert Jobs.get_job_by_location_and_slug("LonDon", job.slug) == job
     end
-    
+
     test "get_job_by_location_and_slug/2 returns nil when no job matches" do
       assert Jobs.get_job_by_location_and_slug("nonexistent", "invalid-slug") == nil
     end
 
     test "create_job/1 with valid data creates a job" do
       valid_attrs = %{
-        title: "Software Engineer", 
-        description: "Building awesome software", 
-        requirements: "Elixir experience", 
-        location: "Remote", 
+        title: "Software Engineer",
+        description: "Building awesome software",
+        requirements: "Elixir experience",
+        location: "Remote",
         salary: "$100k-$150k"
       }
 
@@ -53,19 +53,24 @@ defmodule Recruitment.JobsTest do
       assert job.salary == "$100k-$150k"
       assert job.slug == "software-engineer"
     end
-    
+
     test "create_job/1 generates slug from title" do
-      attrs = %{title: "Senior Ruby Developer", description: "Ruby development", location: "Berlin"}
+      attrs = %{
+        title: "Senior Ruby Developer",
+        description: "Ruby development",
+        location: "Berlin"
+      }
+
       assert {:ok, %Job{} = job} = Jobs.create_job(attrs)
       assert job.slug == "senior-ruby-developer"
     end
-    
+
     test "create_job/1 handles special characters in slug generation" do
       attrs = %{title: "C++ & Java Developer!", description: "Programming", location: "Paris"}
       assert {:ok, %Job{} = job} = Jobs.create_job(attrs)
       assert job.slug == "c-java-developer"
     end
-    
+
     test "create_job/1 handles whitespace in slug generation" do
       attrs = %{title: "  Data   Scientist  ", description: "Data analysis", location: "Berlin"}
       assert {:ok, %Job{} = job} = Jobs.create_job(attrs)
@@ -78,11 +83,12 @@ defmodule Recruitment.JobsTest do
 
     test "update_job/2 with valid data updates the job" do
       job = job_fixture()
+
       update_attrs = %{
-        title: "Senior Software Engineer", 
-        description: "Leading a team", 
-        requirements: "5+ years Elixir experience", 
-        location: "Hybrid", 
+        title: "Senior Software Engineer",
+        description: "Leading a team",
+        requirements: "5+ years Elixir experience",
+        location: "Hybrid",
         salary: "$150k-$200k"
       }
 
@@ -94,11 +100,11 @@ defmodule Recruitment.JobsTest do
       assert job.salary == "$150k-$200k"
       assert job.slug == "senior-software-engineer"
     end
-    
+
     test "update_job/2 updates slug when title changes" do
       job = job_fixture(%{title: "Developer"})
       assert job.slug == "developer"
-      
+
       {:ok, updated_job} = Jobs.update_job(job, %{title: "Senior Developer"})
       assert updated_job.slug == "senior-developer"
     end
@@ -120,145 +126,221 @@ defmodule Recruitment.JobsTest do
       assert %Ecto.Changeset{} = Jobs.change_job(job)
     end
   end
-  
+
   describe "job slug uniqueness" do
     alias Recruitment.Jobs.Job
     import Recruitment.JobsFixtures
-    
+
     test "jobs with identical titles have unique slugs" do
       # Create first job
-      {:ok, job1} = Jobs.create_job(%{
-        title: "Software Engineer",
-        description: "First job description",
-        location: "London"
-      })
-      
+      {:ok, job1} =
+        Jobs.create_job(%{
+          title: "Software Engineer",
+          description: "First job description",
+          location: "London"
+        })
+
       # Create second job with same title
-      {:ok, job2} = Jobs.create_job(%{
-        title: "Software Engineer",
-        description: "Second job description",
-        location: "Berlin"
-      })
-      
+      {:ok, job2} =
+        Jobs.create_job(%{
+          title: "Software Engineer",
+          description: "Second job description",
+          location: "Berlin"
+        })
+
       # Slugs should be different now that we've implemented uniqueness
       refute job1.slug == job2.slug
-      
+
       # Both slugs should start with the same base
       assert String.starts_with?(job2.slug, "software-engineer-")
     end
-    
+
     test "updating a job maintains the same slug if title doesn't change" do
-      {:ok, job} = Jobs.create_job(%{
-        title: "DevOps Engineer",
-        description: "Original description",
-        location: "Remote"
-      })
-      
+      {:ok, job} =
+        Jobs.create_job(%{
+          title: "DevOps Engineer",
+          description: "Original description",
+          location: "Remote"
+        })
+
       original_slug = job.slug
-      
-      {:ok, updated_job} = Jobs.update_job(job, %{
-        description: "Updated description"
-      })
-      
+
+      {:ok, updated_job} =
+        Jobs.update_job(job, %{
+          description: "Updated description"
+        })
+
       assert updated_job.slug == original_slug
     end
-    
+
     test "slug doesn't change when title is updated" do
       # Create a job
-      {:ok, job} = Jobs.create_job(%{
-        title: "Frontend Developer",
-        description: "Original description",
-        location: "Remote",
-        job_type: "full_time",
-        category: "Engineering",
-        summary: "A frontend role"
-      })
-      
+      {:ok, job} =
+        Jobs.create_job(%{
+          title: "Frontend Developer",
+          description: "Original description",
+          location: "Remote",
+          job_type: "full_time",
+          category: "Engineering",
+          summary: "A frontend role"
+        })
+
       original_slug = job.slug
-      
+
       # Update the job title
-      {:ok, updated_job} = Jobs.update_job(job, %{
-        title: "Senior Frontend Developer"
-      })
-      
+      {:ok, updated_job} =
+        Jobs.update_job(job, %{
+          title: "Senior Frontend Developer"
+        })
+
       # Slug should remain the same
       assert updated_job.slug == original_slug
       assert updated_job.title == "Senior Frontend Developer"
     end
-    
+
     test "slug can be regenerated when explicitly requested" do
       # Create a job
-      {:ok, job} = Jobs.create_job(%{
-        title: "Backend Developer",
-        description: "Original description",
-        location: "Remote",
-        job_type: "full_time",
-        category: "Engineering",
-        summary: "A backend role"
-      })
-      
+      {:ok, job} =
+        Jobs.create_job(%{
+          title: "Backend Developer",
+          description: "Original description",
+          location: "Remote",
+          job_type: "full_time",
+          category: "Engineering",
+          summary: "A backend role"
+        })
+
       original_slug = job.slug
-      
+
       # Update the job title but keep the original slug
-      {:ok, updated_job} = Jobs.update_job(job, %{
-        title: "Senior Backend Developer"
-      })
-      
+      {:ok, updated_job} =
+        Jobs.update_job(job, %{
+          title: "Senior Backend Developer"
+        })
+
       # Slug should remain the same
       assert updated_job.slug == original_slug
-      
+
       # Now explicitly regenerate the slug
       {:ok, regenerated_job} = Jobs.regenerate_job_slug(updated_job)
-      
+
       # Slug should be updated to match the new title
       assert regenerated_job.slug != original_slug
       assert regenerated_job.slug == "senior-backend-developer"
     end
-    
+
     test "regenerate_job_slug/2 updates both the slug and other attributes" do
       # Create a job
-      {:ok, job} = Jobs.create_job(%{
-        title: "Product Manager",
-        description: "Original description",
-        location: "Remote",
-        job_type: "full_time",
-        category: "Product",
-        summary: "A product role"
-      })
-      
+      {:ok, job} =
+        Jobs.create_job(%{
+          title: "Product Manager",
+          description: "Original description",
+          location: "Remote",
+          job_type: "full_time",
+          category: "Product",
+          summary: "A product role"
+        })
+
       # Update multiple attributes and regenerate slug
-      {:ok, updated_job} = Jobs.regenerate_job_slug(job, %{
-        title: "Senior Product Manager",
-        description: "Updated description",
-        location: "Hybrid"
-      })
-      
+      {:ok, updated_job} =
+        Jobs.regenerate_job_slug(job, %{
+          title: "Senior Product Manager",
+          description: "Updated description",
+          location: "Hybrid"
+        })
+
       # Both slug and other attributes should be updated
       assert updated_job.slug == "senior-product-manager"
       assert updated_job.description == "Updated description"
       assert updated_job.location == "Hybrid"
     end
-    
+
     test "slug uniqueness is preserved when updating a job title" do
       # Create two jobs with different titles
-      {:ok, job1} = Jobs.create_job(%{
-        title: "Frontend Developer",
-        description: "Job 1",
-        location: "Berlin"
-      })
-      
-      {:ok, job2} = Jobs.create_job(%{
-        title: "Backend Developer",
-        description: "Job 2",
-        location: "Munich"
-      })
-      
+      {:ok, job1} =
+        Jobs.create_job(%{
+          title: "Frontend Developer",
+          description: "Job 1",
+          location: "Berlin"
+        })
+
+      {:ok, job2} =
+        Jobs.create_job(%{
+          title: "Backend Developer",
+          description: "Job 2",
+          location: "Munich"
+        })
+
       # Update job2 to have the same title as job1
       {:ok, updated_job2} = Jobs.update_job(job2, %{title: "Frontend Developer"})
-      
+
       # Slugs should be different
       refute job1.slug == updated_job2.slug
       assert String.starts_with?(updated_job2.slug, "frontend-developer-")
+    end
+  end
+
+  describe "error handling" do
+    alias Recruitment.Jobs.Error
+    import Recruitment.JobsFixtures
+
+    test "get_job/1 returns error when job not found" do
+      assert {:error, %Error{message: "Job not found", code: :not_found}} = Jobs.get_job(123)
+    end
+
+    test "get_job!/1 raises error when job not found" do
+      assert_raise Error, "Job not found", fn ->
+        Jobs.get_job!(123)
+      end
+    end
+
+    test "get_job_by_location_and_slug/2 returns error when job not found" do
+      assert {:error,
+              %Error{
+                message: "Job not found for location 'london' and slug 'invalid-slug'",
+                code: :not_found
+              }} =
+               Jobs.get_job_by_location_and_slug("london", "invalid-slug")
+    end
+
+    test "create_job/1 returns error with validation details" do
+      assert {:error,
+              %Error{message: "Invalid job data", code: :validation_error, details: details}} =
+               Jobs.create_job(%{title: nil, location: nil})
+
+      assert details.title == ["can't be blank"]
+      assert details.location == ["can't be blank"]
+    end
+
+    test "update_job/2 returns error with validation details" do
+      job = job_fixture()
+
+      assert {:error,
+              %Error{message: "Invalid job data", code: :validation_error, details: details}} =
+               Jobs.update_job(job, %{title: nil})
+
+      assert details.title == ["can't be blank"]
+    end
+
+    test "delete_job/1 returns error when deletion fails" do
+      # Create a job with invalid data to force a deletion error
+      job = job_fixture()
+      # Force a deletion error by making the job invalid
+      invalid_job = %{job | id: nil}
+
+      assert {:error, %Error{message: "Could not delete job", code: :delete_error}} =
+               Jobs.delete_job(invalid_job)
+    end
+
+    test "list_published_jobs/0 returns error when query fails" do
+      # Mock the Repo to force an error
+      original_repo = Process.get(:repo)
+      Process.put(:repo, fn _ -> {:error, "Database error"} end)
+
+      assert {:error, "Database error"} = Jobs.list_published_jobs()
+
+      # Restore original repo
+      Process.put(:repo, original_repo)
     end
   end
 end
